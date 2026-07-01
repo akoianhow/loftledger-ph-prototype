@@ -1,0 +1,1748 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LoftLedger PH Prototype</title>
+  <style>
+    :root {
+      --ink: #18211f;
+      --muted: #66716d;
+      --line: #dfe5e1;
+      --paper: #fbfaf7;
+      --panel: #ffffff;
+      --soft: #f0f4ef;
+      --brand: #1e4f44;
+      --brand-2: #9d2f2b;
+      --gold: #b3832f;
+      --blue: #315b8c;
+      --shadow: 0 18px 60px rgba(24, 33, 31, .11);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      letter-spacing: 0;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      background: #14211e;
+      color: #f7f4ec;
+      padding: 22px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #e6d7b5, #8f6830);
+      color: #15221f;
+      font-weight: 900;
+      letter-spacing: .03em;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.05;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: #b9c4bd;
+      font-size: 12px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 6px;
+    }
+
+    .nav button {
+      width: 100%;
+      border: 0;
+      border-radius: var(--radius);
+      padding: 11px 12px;
+      color: #dfe7e2;
+      background: transparent;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav button.active,
+    .nav button:hover {
+      background: rgba(255, 255, 255, .09);
+      color: #ffffff;
+    }
+
+    .side-card {
+      margin-top: auto;
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: var(--radius);
+      padding: 14px;
+      background: rgba(255, 255, 255, .06);
+    }
+
+    .side-card small {
+      color: #c6d0ca;
+      display: block;
+      line-height: 1.45;
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    .hero {
+      min-height: 330px;
+      background:
+        linear-gradient(90deg, rgba(14, 25, 22, .92), rgba(14, 25, 22, .68) 38%, rgba(14, 25, 22, .10) 72%),
+        url("assets/loft-hero.png") center right / cover no-repeat;
+      color: #fff;
+      padding: 34px 38px;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .hero-content {
+      width: min(700px, 100%);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 12px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      color: #f2dfb8;
+      border: 1px solid rgba(242, 223, 184, .36);
+      background: rgba(0, 0, 0, .22);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .hero h2 {
+      margin: 0;
+      max-width: 620px;
+      font-size: clamp(32px, 5vw, 58px);
+      line-height: .96;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 16px 0 0;
+      color: #e5ece7;
+      max-width: 610px;
+      line-height: 1.55;
+      font-size: 15px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 38px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(251, 250, 247, .9);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      backdrop-filter: blur(12px);
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .search-row input,
+    .search-row select {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--ink);
+      min-height: 40px;
+      padding: 0 12px;
+      outline: none;
+    }
+
+    .search-row input {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .primary-action,
+    .secondary-action {
+      border: 0;
+      border-radius: var(--radius);
+      min-height: 40px;
+      padding: 0 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .primary-action {
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .secondary-action {
+      background: #fff;
+      color: var(--brand);
+      border: 1px solid var(--line);
+    }
+
+    .page {
+      padding: 26px 38px 44px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 17px;
+      box-shadow: 0 8px 22px rgba(24, 33, 31, .045);
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 7px;
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+
+    .workbench {
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(360px, .82fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .section-head h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .section-head p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .bird-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .bird-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 16px;
+      min-height: 220px;
+      display: grid;
+      gap: 13px;
+      box-shadow: 0 10px 30px rgba(24, 33, 31, .06);
+      transition: transform .15s ease, border-color .15s ease;
+    }
+
+    .bird-card:hover,
+    .bird-card.selected {
+      transform: translateY(-2px);
+      border-color: rgba(30, 79, 68, .55);
+    }
+
+    .bird-top {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    .bird-avatar {
+      width: 58px;
+      height: 58px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--brand), #7e8d83);
+    }
+
+    .bird-card:nth-child(2n) .bird-avatar {
+      background: linear-gradient(135deg, var(--blue), #9b8c77);
+    }
+
+    .bird-card:nth-child(3n) .bird-avatar {
+      background: linear-gradient(135deg, var(--brand-2), #b8944e);
+    }
+
+    .bird-name {
+      min-width: 0;
+    }
+
+    .bird-name h4 {
+      margin: 0;
+      font-size: 17px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bird-name p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      background: var(--soft);
+      color: #31423d;
+      padding: 5px 8px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge.racer {
+      background: #e8f0f8;
+      color: #23466f;
+    }
+
+    .badge.breeder {
+      background: #f8efe0;
+      color: #71501f;
+    }
+
+    .badge.watch {
+      background: #fbe8e5;
+      color: #7d2c25;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .mini-metric {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 9px;
+      background: #fff;
+    }
+
+    .mini-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .mini-metric strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .detail-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 84px;
+      overflow: hidden;
+    }
+
+    .detail-cover {
+      height: 105px;
+      background: linear-gradient(135deg, rgba(30, 79, 68, .93), rgba(157, 47, 43, .72)), url("assets/loft-hero.png") center / cover;
+    }
+
+    .detail-body {
+      padding: 18px;
+    }
+
+    .detail-title {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+      margin-bottom: 14px;
+    }
+
+    .detail-title h3 {
+      margin: 0;
+      font-size: 23px;
+    }
+
+    .detail-title p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status-pill {
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 12px;
+      color: #fff;
+      font-weight: 900;
+      background: var(--brand);
+      white-space: nowrap;
+    }
+
+    .detail-table {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .field {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px;
+      min-width: 0;
+      background: #fff;
+    }
+
+    .field span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .field strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+    }
+
+    .tab {
+      border: 0;
+      background: transparent;
+      padding: 10px 8px;
+      color: var(--muted);
+      font-weight: 900;
+      font-size: 12px;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab.active {
+      color: var(--brand);
+      border-color: var(--brand);
+    }
+
+    .record-list {
+      display: grid;
+      gap: 9px;
+      max-height: 288px;
+      overflow: auto;
+      padding-right: 3px;
+    }
+
+    .record {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 11px;
+      background: #fff;
+    }
+
+    .record-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 5px;
+    }
+
+    .record strong {
+      font-size: 14px;
+    }
+
+    .record time {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .record p {
+      margin: 0;
+      color: #495652;
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    .lower-grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 18px;
+    }
+
+    .race-center {
+      display: grid;
+      grid-template-columns: minmax(360px, .8fr) minmax(0, 1.2fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .race-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .race-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      transition: border-color .15s ease, transform .15s ease;
+    }
+
+    .race-card:hover,
+    .race-card.selected {
+      border-color: rgba(30, 79, 68, .6);
+      transform: translateY(-1px);
+    }
+
+    .race-card h4,
+    .race-detail h4 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .race-card p,
+    .race-detail p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .race-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .race-detail {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 17px;
+    }
+
+    .race-result-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .result-table-wrap {
+      overflow-x: auto;
+    }
+
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 720px;
+    }
+
+    .result-table th,
+    .result-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 11px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .result-table th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .training-board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .training-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(24, 33, 31, .045);
+    }
+
+    .training-card h4 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .readiness {
+      height: 8px;
+      border-radius: 999px;
+      background: #edf1ee;
+      overflow: hidden;
+    }
+
+    .readiness span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--brand), var(--gold));
+    }
+
+    .stat-pair {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stat-pair strong {
+      color: var(--ink);
+      font-size: 12px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 17px;
+      box-shadow: 0 10px 30px rgba(24, 33, 31, .05);
+    }
+
+    .timeline {
+      display: grid;
+      gap: 11px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 12px;
+      padding-bottom: 11px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .timeline-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .timeline-date {
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .timeline-item strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .timeline-item p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .expense-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .expense-table th,
+    .expense-table td {
+      padding: 11px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .expense-table th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .expense-table td:last-child,
+    .expense-table th:last-child {
+      text-align: right;
+      font-weight: 900;
+    }
+
+    .quick-note {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .quick-note textarea {
+      width: 100%;
+      min-height: 76px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      padding: 10px;
+      resize: vertical;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      background: #14211e;
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      z-index: 20;
+      font-size: 14px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1280px) {
+      .stats-grid,
+      .training-board {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 1080px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        height: auto;
+        position: static;
+        flex-direction: row;
+        align-items: center;
+        overflow-x: auto;
+      }
+
+      .nav {
+        display: flex;
+        min-width: max-content;
+      }
+
+      .side-card {
+        display: none;
+      }
+
+      .workbench,
+      .race-center,
+      .lower-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .hero,
+      .toolbar,
+      .page {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .hero {
+        min-height: 360px;
+        align-items: flex-end;
+        background:
+          linear-gradient(180deg, rgba(14, 25, 22, .30), rgba(14, 25, 22, .92)),
+          url("assets/loft-hero.png") center / cover no-repeat;
+      }
+
+      .toolbar {
+        position: static;
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .search-row input,
+      .search-row select,
+      .primary-action,
+      .secondary-action {
+        width: 100%;
+      }
+
+      .stats-grid,
+      .bird-grid,
+      .training-board,
+      .race-result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-table,
+      .metric-row {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">LL</div>
+        <div>
+          <h1>LoftLedger PH</h1>
+          <p>Fancier loft organizer</p>
+        </div>
+      </div>
+      <nav class="nav" aria-label="Prototype sections">
+        <button class="active" data-scroll="dashboard">Overview</button>
+        <button data-scroll="birds">Birds</button>
+        <button data-scroll="races">Race Center</button>
+        <button data-scroll="training">Training Stats</button>
+        <button data-scroll="records">Records</button>
+        <button data-scroll="expenses">Expenses</button>
+      </nav>
+      <div class="side-card">
+        <small><strong>Prototype mode</strong></small>
+        <small>Seeded records only. Notes added here stay in this browser and reset when storage is cleared.</small>
+      </div>
+    </aside>
+
+    <main>
+      <section class="hero" id="dashboard">
+        <div class="hero-content">
+          <div class="eyebrow">Filipino loft management prototype</div>
+          <h2>Organize birds, pairings, tosses, races, and loft expenses.</h2>
+          <p>A shareable static prototype for backyard and club-level fanciers in the Philippines, designed around ring numbers, local release points, health schedules, and simple daily loft decisions.</p>
+        </div>
+      </section>
+
+      <div class="toolbar">
+        <div class="search-row">
+          <input id="searchInput" type="search" placeholder="Search ring, nickname, strain, source, or note">
+          <select id="statusFilter" aria-label="Filter by status">
+            <option value="all">All statuses</option>
+            <option value="Racer">Racers</option>
+            <option value="Breeder">Breeders</option>
+            <option value="Young Bird">Young birds</option>
+            <option value="Watchlist">Watchlist</option>
+          </select>
+          <select id="sexFilter" aria-label="Filter by sex">
+            <option value="all">All sexes</option>
+            <option value="Cock">Cock</option>
+            <option value="Hen">Hen</option>
+          </select>
+        </div>
+        <button class="primary-action" id="resetButton">Reset view</button>
+      </div>
+
+      <div class="page">
+        <section class="stats-grid" aria-label="Loft summary">
+          <article class="stat">
+            <span>Total birds</span>
+            <strong id="statTotal">0</strong>
+          </article>
+          <article class="stat">
+            <span>Racing team</span>
+            <strong id="statRacers">0</strong>
+          </article>
+          <article class="stat">
+            <span>Breeding pairs</span>
+            <strong id="statPairs">0</strong>
+          </article>
+          <article class="stat">
+            <span>Monthly spend</span>
+            <strong id="statSpend">PHP 0</strong>
+          </article>
+          <article class="stat">
+            <span>Return rate</span>
+            <strong id="statReturnRate">0%</strong>
+          </article>
+          <article class="stat">
+            <span>Next race</span>
+            <strong id="statNextRace">None</strong>
+          </article>
+        </section>
+
+        <section class="workbench" id="birds">
+          <div>
+            <div class="section-head">
+              <div>
+                <h3>Loft Birds</h3>
+                <p>Seeded with four birds and multiple related records per bird.</p>
+              </div>
+              <button class="secondary-action" id="exportButton">Export sample</button>
+            </div>
+            <div class="bird-grid" id="birdGrid"></div>
+          </div>
+
+          <aside class="detail-panel" aria-live="polite">
+            <div class="detail-cover"></div>
+            <div class="detail-body" id="detailBody"></div>
+          </aside>
+        </section>
+
+        <section class="panel" id="races">
+          <div class="section-head">
+            <div>
+              <h3>Race Center</h3>
+              <p>Manage races joined by the loft, entries, clocking results, fees, prizes, and race-day status.</p>
+            </div>
+          </div>
+          <div class="race-center">
+            <div class="race-list" id="raceList"></div>
+            <div class="race-detail" id="raceDetail"></div>
+          </div>
+        </section>
+
+        <section class="panel" id="training">
+          <div class="section-head">
+            <div>
+              <h3>Training Readiness</h3>
+              <p>Important fancier stats from tosses: return rate, average gap, late returns, rest days, distance progress, and race conversion.</p>
+            </div>
+          </div>
+          <div class="training-board" id="trainingBoard"></div>
+        </section>
+
+        <section class="lower-grid" id="records">
+          <article class="panel">
+            <div class="section-head">
+              <div>
+                <h3>Upcoming Loft Work</h3>
+                <p>Health, pairing, toss, and race reminders for a PH setting.</p>
+              </div>
+            </div>
+            <div class="timeline" id="timeline"></div>
+          </article>
+
+          <article class="panel" id="expenses">
+            <div class="section-head">
+              <div>
+                <h3>Recent Expenses</h3>
+                <p>Basic PHP spending log for feed, health, transport, and club fees.</p>
+              </div>
+            </div>
+            <table class="expense-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Category</th>
+                  <th>Purpose</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody id="expenseRows"></tbody>
+            </table>
+          </article>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast">Done</div>
+
+  <script>
+    const birds = [
+      {
+        id: "ph-24-qc-1187",
+        ring: "PH-24-QC-1187",
+        name: "Balintawak Ace",
+        sex: "Cock",
+        color: "Blue bar",
+        strain: "Janssen x Local North Line",
+        status: "Racer",
+        hatchDate: "2024-02-18",
+        source: "Quezon City Breeder - Mang Lito",
+        loftSection: "Race Team A",
+        sire: "PH-21-QC-0441 Manila Bullet",
+        dam: "PH-22-BUL-0908 Bulacan Lady",
+        summary: "Consistent returner for short to middle distance tosses. Good trap discipline.",
+        records: [
+          { type: "Health", date: "2026-06-08", title: "PMV vaccination", note: "Annual PMV vaccine logged. No reaction after 24-hour observation." },
+          { type: "Training", date: "2026-06-18", title: "San Jose del Monte toss", note: "Released 6:10 AM, arrived 7:02 AM. Clear weather, light headwind." },
+          { type: "Race", date: "2026-06-22", title: "Club sprint qualifier", note: "Entered under QC Flyers Club. Placed 8th of 64 entries." }
+        ]
+      },
+      {
+        id: "ph-23-bul-0329",
+        ring: "PH-23-BUL-0329",
+        name: "Marilao Queen",
+        sex: "Hen",
+        color: "Dark check",
+        strain: "Vandenabeele x Bulacan Line",
+        status: "Breeder",
+        hatchDate: "2023-11-04",
+        source: "Marilao, Bulacan loft swap",
+        loftSection: "Breeding Pen 2",
+        sire: "PH-20-BUL-1102 Road King",
+        dam: "PH-21-PAM-0715 Pampanga Rose",
+        summary: "Reliable layer and calm handler. Paired for speed and homing temperament.",
+        records: [
+          { type: "Breeding", date: "2026-05-20", title: "Paired with Balintawak Ace", note: "First egg logged May 27. Both parents feeding steadily." },
+          { type: "Health", date: "2026-06-03", title: "Deworming cycle", note: "One-day deworming completed before second clutch planning." },
+          { type: "Breeding", date: "2026-06-16", title: "Two chicks ringed", note: "Assigned rings PH-26-QC-0144 and PH-26-QC-0145." }
+        ]
+      },
+      {
+        id: "ph-25-riz-0671",
+        ring: "PH-25-RIZ-0671",
+        name: "Antipolo Flash",
+        sex: "Cock",
+        color: "Red check",
+        strain: "Stichelbaut x Rizal Sprint",
+        status: "Young Bird",
+        hatchDate: "2025-09-12",
+        source: "Antipolo City auction",
+        loftSection: "Young Bird Section",
+        sire: "PH-22-RIZ-0417 Red Climber",
+        dam: "PH-23-QC-0255 Aurora",
+        summary: "Promising young bird with sharp orientation. Still building distance discipline.",
+        records: [
+          { type: "Training", date: "2026-06-11", title: "Commonwealth orientation toss", note: "Short toss only. Returned with group after 18 minutes." },
+          { type: "Health", date: "2026-06-14", title: "Respiratory observation", note: "Mild sneezing noted after rain. Isolated overnight and monitored." },
+          { type: "Training", date: "2026-06-24", title: "Montalban toss", note: "Released with six young birds. Arrived 9 minutes after lead group." }
+        ]
+      },
+      {
+        id: "ph-22-lag-2044",
+        ring: "PH-22-LAG-2044",
+        name: "Laguna Classic",
+        sex: "Hen",
+        color: "Pencil blue",
+        strain: "Long-distance Laguna Family",
+        status: "Watchlist",
+        hatchDate: "2022-07-30",
+        source: "Calamba, Laguna veteran fancier",
+        loftSection: "Recovery Pen",
+        sire: "PH-18-LAG-0220 South Wind",
+        dam: "PH-19-LAG-0101 Lake Pearl",
+        summary: "Experienced hen with strong bloodline. Currently monitored after a late return.",
+        records: [
+          { type: "Race", date: "2026-05-31", title: "Lucena club race", note: "Returned late afternoon. No visible wound, but body weight dropped." },
+          { type: "Health", date: "2026-06-02", title: "Recovery protocol", note: "Electrolytes, light feed, and seven-day rest period assigned." },
+          { type: "Training", date: "2026-06-21", title: "Loft flying only", note: "No road toss yet. Good appetite and wing condition improving." }
+        ]
+      }
+    ];
+
+    const trainingSessions = [
+      {
+        id: "trn-2026-06-11-commonwealth",
+        date: "2026-06-11",
+        releasePoint: "Commonwealth Ave, Quezon City",
+        distanceKm: 8,
+        releaseTime: "06:05",
+        weather: "Clear, light northeast wind",
+        route: "QC short orientation",
+        results: [
+          { birdId: "ph-25-riz-0671", arrivalMinutes: 18, gapMinutes: 0, status: "Returned", condition: "Calm trap entry" },
+          { birdId: "ph-24-qc-1187", arrivalMinutes: 16, gapMinutes: 0, status: "Returned", condition: "Led group" }
+        ]
+      },
+      {
+        id: "trn-2026-06-18-sjdm",
+        date: "2026-06-18",
+        releasePoint: "San Jose del Monte, Bulacan",
+        distanceKm: 31,
+        releaseTime: "06:10",
+        weather: "Warm, light headwind",
+        route: "Bulacan north line",
+        results: [
+          { birdId: "ph-24-qc-1187", arrivalMinutes: 52, gapMinutes: 0, status: "Returned", condition: "Sharp return and clean trap" },
+          { birdId: "ph-25-riz-0671", arrivalMinutes: 60, gapMinutes: 8, status: "Returned", condition: "Late but steady" },
+          { birdId: "ph-22-lag-2044", arrivalMinutes: 88, gapMinutes: 36, status: "Late", condition: "Rest advised" }
+        ]
+      },
+      {
+        id: "trn-2026-06-21-loft-fly",
+        date: "2026-06-21",
+        releasePoint: "Home loft, Quezon City",
+        distanceKm: 0,
+        releaseTime: "06:30",
+        weather: "Cloudy after rain",
+        route: "Loft flying only",
+        results: [
+          { birdId: "ph-22-lag-2044", arrivalMinutes: 35, gapMinutes: 0, status: "Returned", condition: "Recovery exercise only" },
+          { birdId: "ph-23-bul-0329", arrivalMinutes: 22, gapMinutes: 0, status: "Returned", condition: "Breeder conditioning" }
+        ]
+      },
+      {
+        id: "trn-2026-06-24-montalban",
+        date: "2026-06-24",
+        releasePoint: "Montalban, Rizal",
+        distanceKm: 24,
+        releaseTime: "06:20",
+        weather: "Overcast, tailwind",
+        route: "Rizal east line",
+        results: [
+          { birdId: "ph-24-qc-1187", arrivalMinutes: 38, gapMinutes: 0, status: "Returned", condition: "First drop" },
+          { birdId: "ph-25-riz-0671", arrivalMinutes: 47, gapMinutes: 9, status: "Returned", condition: "Improved orientation" },
+          { birdId: "ph-23-bul-0329", arrivalMinutes: 55, gapMinutes: 17, status: "Returned", condition: "Exercise toss only" }
+        ]
+      },
+      {
+        id: "trn-2026-06-28-calamba",
+        date: "2026-06-28",
+        releasePoint: "Calamba, Laguna",
+        distanceKm: 55,
+        releaseTime: "06:00",
+        weather: "Humid, crosswind",
+        route: "Laguna south line",
+        results: [
+          { birdId: "ph-24-qc-1187", arrivalMinutes: 94, gapMinutes: 0, status: "Returned", condition: "Good hydration after return" },
+          { birdId: "ph-25-riz-0671", arrivalMinutes: 118, gapMinutes: 24, status: "Late", condition: "Monitor next toss" },
+          { birdId: "ph-22-lag-2044", arrivalMinutes: null, gapMinutes: null, status: "Rested", condition: "Held back from road toss" }
+        ]
+      }
+    ];
+
+    const races = [
+      {
+        id: "race-2026-qc-sprint",
+        name: "QC Flyers June Sprint Qualifier",
+        club: "QC Flyers Racing Pigeon Club",
+        category: "Old bird open",
+        status: "Completed",
+        releasePoint: "San Miguel, Bulacan",
+        distanceKm: 42,
+        scheduledDate: "2026-06-22",
+        basketingDate: "2026-06-21",
+        releaseTime: "06:15",
+        weather: "Clear, light headwind",
+        entryFee: 760,
+        prizePool: 5200,
+        notes: "Club clocking accepted until 4:00 PM. Palista was optional.",
+        results: [
+          { birdId: "ph-24-qc-1187", status: "Clocked", clockTime: "07:08:44", flightMinutes: 53.7, velocityMpm: 782, rank: 8, prize: 450, note: "Best loft result; clean trap." },
+          { birdId: "ph-25-riz-0671", status: "Clocked", clockTime: "07:24:10", flightMinutes: 69.2, velocityMpm: 607, rank: 26, prize: 0, note: "Good for young bird experience." },
+          { birdId: "ph-22-lag-2044", status: "Rested", clockTime: "-", flightMinutes: null, velocityMpm: null, rank: "-", prize: 0, note: "Held due to recovery protocol." }
+        ]
+      },
+      {
+        id: "race-2026-lucena",
+        name: "South Line Lucena Club Race",
+        club: "Metro Manila South Line Combine",
+        category: "Old bird middle distance",
+        status: "Completed",
+        releasePoint: "Lucena City, Quezon",
+        distanceKm: 105,
+        scheduledDate: "2026-05-31",
+        basketingDate: "2026-05-30",
+        releaseTime: "05:55",
+        weather: "Hot, variable wind",
+        entryFee: 980,
+        prizePool: 9800,
+        notes: "Difficult return day for several QC lofts.",
+        results: [
+          { birdId: "ph-22-lag-2044", status: "Late", clockTime: "15:42:00", flightMinutes: 587, velocityMpm: 179, rank: "Late", prize: 0, note: "Returned same day but underweight." },
+          { birdId: "ph-24-qc-1187", status: "Clocked", clockTime: "08:22:30", flightMinutes: 147.5, velocityMpm: 712, rank: 14, prize: 0, note: "Respectable middle-distance result." }
+        ]
+      },
+      {
+        id: "race-2026-tarlac",
+        name: "Tarlac North Line Derby Leg 1",
+        club: "Central Luzon Invitational Derby",
+        category: "Young bird derby",
+        status: "Upcoming",
+        releasePoint: "Capas, Tarlac",
+        distanceKm: 92,
+        scheduledDate: "2026-07-13",
+        basketingDate: "2026-07-12",
+        releaseTime: "Pending",
+        weather: "Monitor rain forecast",
+        entryFee: 1500,
+        prizePool: 25000,
+        notes: "Target race for young birds if training gap improves.",
+        results: [
+          { birdId: "ph-25-riz-0671", status: "Planned", clockTime: "-", flightMinutes: null, velocityMpm: null, rank: "-", prize: 0, note: "Enter only if July 7 toss is strong." },
+          { birdId: "ph-24-qc-1187", status: "Backup", clockTime: "-", flightMinutes: null, velocityMpm: null, rank: "-", prize: 0, note: "Use as experienced team anchor if basket count allows." }
+        ]
+      }
+    ];
+
+    const expenses = [
+      { date: "2026-06-25", category: "Feed", purpose: "25kg racing mix from Banawe supplier", amount: 1850 },
+      { date: "2026-06-21", category: "Club Fee", purpose: "QC Flyers June sprint entry fees", amount: 760 },
+      { date: "2026-06-14", category: "Medicine", purpose: "Respiratory support and electrolytes", amount: 640 },
+      { date: "2026-06-09", category: "Transport", purpose: "Training toss fuel and toll share", amount: 500 },
+      { date: "2026-06-30", category: "Race Reservation", purpose: "Tarlac derby slot reservation", amount: 1500 }
+    ];
+
+    const reminders = [
+      { date: "Jul 03", title: "Check Laguna Classic recovery weight", note: "Decide if she can return to light tosses or stay in recovery pen." },
+      { date: "Jul 05", title: "Pairing review for Marilao Queen", note: "Inspect nest bowl and confirm if second clutch should continue." },
+      { date: "Jul 07", title: "Montalban group toss", note: "Young bird team only if weather is clear before 6:30 AM." },
+      { date: "Jul 12", title: "PMV log audit", note: "Print or export vaccination record for club compliance." },
+      { date: "Jul 12", title: "Tarlac derby basketing", note: "Confirm Antipolo Flash readiness before paying final basket fees." }
+    ];
+
+    const state = {
+      selectedId: birds[0].id,
+      selectedRaceId: races[0].id,
+      tab: "All",
+      query: "",
+      status: "all",
+      sex: "all"
+    };
+
+    const peso = new Intl.NumberFormat("en-PH", {
+      style: "currency",
+      currency: "PHP",
+      maximumFractionDigits: 0
+    });
+
+    function formatMoney(amount) {
+      return peso.format(amount).replace("\u20b1", "PHP ");
+    }
+
+    function birdName(id) {
+      return birds.find((bird) => bird.id === id)?.name || id;
+    }
+
+    function birdRing(id) {
+      return birds.find((bird) => bird.id === id)?.ring || id;
+    }
+
+    function allTrainingResults() {
+      return trainingSessions.flatMap((session) => session.results.map((result) => ({
+        ...result,
+        sessionId: session.id,
+        date: session.date,
+        releasePoint: session.releasePoint,
+        distanceKm: session.distanceKm,
+        weather: session.weather
+      })));
+    }
+
+    function raceResultsForBird(birdId) {
+      return races.flatMap((race) => race.results
+        .filter((result) => result.birdId === birdId)
+        .map((result) => ({
+          ...result,
+          raceId: race.id,
+          raceName: race.name,
+          date: race.scheduledDate,
+          distanceKm: race.distanceKm
+        })));
+    }
+
+    function trainingStatsForBird(birdId) {
+      const results = allTrainingResults().filter((result) => result.birdId === birdId);
+      const roadResults = results.filter((result) => result.distanceKm > 0);
+      const returned = roadResults.filter((result) => result.status === "Returned" || result.status === "Late");
+      const late = roadResults.filter((result) => result.status === "Late").length;
+      const gaps = returned
+        .map((result) => result.gapMinutes)
+        .filter((value) => typeof value === "number");
+      const sortedRoad = [...roadResults].sort((a, b) => a.date.localeCompare(b.date));
+      const lastRoad = sortedRoad[sortedRoad.length - 1];
+      const bestDistance = returned.reduce((max, result) => Math.max(max, result.distanceKm), 0);
+      const returnRate = roadResults.length ? Math.round((returned.length / roadResults.length) * 100) : 0;
+      const avgGap = gaps.length ? Math.round(gaps.reduce((sum, value) => sum + value, 0) / gaps.length) : 0;
+      const raceResults = raceResultsForBird(birdId);
+      const clocked = raceResults.filter((result) => result.status === "Clocked");
+      const raceConversion = raceResults.length ? Math.round((clocked.length / raceResults.length) * 100) : 0;
+      const restDays = lastRoad ? Math.max(0, Math.round((new Date("2026-07-01") - new Date(lastRoad.date)) / 86400000)) : 0;
+      const readiness = Math.max(20, Math.min(98, returnRate - (late * 10) - Math.min(avgGap, 25) + Math.min(bestDistance / 3, 20)));
+      return {
+        tosses: roadResults.length,
+        returnRate,
+        avgGap,
+        late,
+        lastDistance: lastRoad?.distanceKm || 0,
+        restDays,
+        bestDistance,
+        raceConversion,
+        readiness: Math.round(readiness)
+      };
+    }
+
+    function loftReturnRate() {
+      const roadResults = allTrainingResults().filter((result) => result.distanceKm > 0);
+      const returned = roadResults.filter((result) => result.status === "Returned" || result.status === "Late");
+      return roadResults.length ? Math.round((returned.length / roadResults.length) * 100) : 0;
+    }
+
+    function nextRace() {
+      return races
+        .filter((race) => race.status === "Upcoming")
+        .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate))[0];
+    }
+
+    function filteredBirds() {
+      const q = state.query.trim().toLowerCase();
+      return birds.filter((bird) => {
+        const text = [
+          bird.ring,
+          bird.name,
+          bird.sex,
+          bird.color,
+          bird.strain,
+          bird.status,
+          bird.source,
+          bird.summary,
+          bird.records.map((record) => `${record.title} ${record.note}`).join(" "),
+          allTrainingResults().filter((result) => result.birdId === bird.id).map((result) => `${result.releasePoint} ${result.weather} ${result.condition}`).join(" "),
+          raceResultsForBird(bird.id).map((result) => `${result.raceName} ${result.status} ${result.note}`).join(" ")
+        ].join(" ").toLowerCase();
+        const matchesText = !q || text.includes(q);
+        const matchesStatus = state.status === "all" || bird.status === state.status;
+        const matchesSex = state.sex === "all" || bird.sex === state.sex;
+        return matchesText && matchesStatus && matchesSex;
+      });
+    }
+
+    function renderStats() {
+      document.getElementById("statTotal").textContent = birds.length;
+      document.getElementById("statRacers").textContent = birds.filter((bird) => bird.status === "Racer").length;
+      document.getElementById("statPairs").textContent = 1;
+      document.getElementById("statSpend").textContent = formatMoney(expenses.reduce((sum, item) => sum + item.amount, 0));
+      document.getElementById("statReturnRate").textContent = `${loftReturnRate()}%`;
+      document.getElementById("statNextRace").textContent = nextRace()?.releasePoint.split(",")[0] || "None";
+    }
+
+    function renderBirds() {
+      const grid = document.getElementById("birdGrid");
+      const results = filteredBirds();
+      if (!results.length) {
+        grid.innerHTML = `<article class="bird-card"><h4>No birds found</h4><p>Try changing the search or filters.</p></article>`;
+        return;
+      }
+      if (!results.some((bird) => bird.id === state.selectedId)) {
+        state.selectedId = results[0].id;
+      }
+      grid.innerHTML = results.map((bird) => {
+        const classes = ["bird-card", bird.id === state.selectedId ? "selected" : ""].join(" ");
+        const statusClass = bird.status === "Racer" ? "racer" : bird.status === "Breeder" ? "breeder" : bird.status === "Watchlist" ? "watch" : "";
+        const training = trainingStatsForBird(bird.id);
+        return `
+          <article class="${classes}" data-bird-id="${bird.id}" tabindex="0" role="button" aria-label="View ${bird.name}">
+            <div class="bird-top">
+              <div class="bird-avatar">${bird.name.split(" ").map((part) => part[0]).join("").slice(0, 2)}</div>
+              <div class="bird-name">
+                <h4>${bird.name}</h4>
+                <p>${bird.ring}</p>
+              </div>
+            </div>
+            <div class="badges">
+              <span class="badge ${statusClass}">${bird.status}</span>
+              <span class="badge">${bird.sex}</span>
+              <span class="badge">${bird.color}</span>
+            </div>
+            <p style="margin:0;color:var(--muted);line-height:1.45;font-size:13px;">${bird.summary}</p>
+            <div class="metric-row">
+              <div class="mini-metric"><span>Return rate</span><strong>${training.returnRate}%</strong></div>
+              <div class="mini-metric"><span>Avg gap</span><strong>${training.avgGap} min</strong></div>
+              <div class="mini-metric"><span>Race conv.</span><strong>${training.raceConversion}%</strong></div>
+            </div>
+          </article>
+        `;
+      }).join("");
+      grid.querySelectorAll(".bird-card").forEach((card) => {
+        card.addEventListener("click", () => selectBird(card.dataset.birdId));
+        card.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectBird(card.dataset.birdId);
+          }
+        });
+      });
+    }
+
+    function selectBird(id) {
+      state.selectedId = id;
+      state.tab = "All";
+      renderBirds();
+      renderDetail();
+    }
+
+    function renderDetail() {
+      const bird = birds.find((item) => item.id === state.selectedId) || birds[0];
+      const types = ["All", ...Array.from(new Set(bird.records.map((record) => record.type)))];
+      const records = state.tab === "All" ? bird.records : bird.records.filter((record) => record.type === state.tab);
+      const training = trainingStatsForBird(bird.id);
+      document.getElementById("detailBody").innerHTML = `
+        <div class="detail-title">
+          <div>
+            <h3>${bird.name}</h3>
+            <p>${bird.ring} / ${bird.strain}</p>
+          </div>
+          <span class="status-pill">${bird.status}</span>
+        </div>
+        <div class="detail-table">
+          <div class="field"><span>Sex</span><strong>${bird.sex}</strong></div>
+          <div class="field"><span>Hatch date</span><strong>${bird.hatchDate}</strong></div>
+          <div class="field"><span>Sire</span><strong>${bird.sire}</strong></div>
+          <div class="field"><span>Dam</span><strong>${bird.dam}</strong></div>
+          <div class="field"><span>Source</span><strong>${bird.source}</strong></div>
+          <div class="field"><span>Section</span><strong>${bird.loftSection}</strong></div>
+        </div>
+        <div class="detail-table">
+          <div class="field"><span>Return rate</span><strong>${training.returnRate}% from ${training.tosses} road tosses</strong></div>
+          <div class="field"><span>Avg gap</span><strong>${training.avgGap} minutes from first drop</strong></div>
+          <div class="field"><span>Rest days</span><strong>${training.restDays} days since road toss</strong></div>
+          <div class="field"><span>Best distance</span><strong>${training.bestDistance} km trained</strong></div>
+        </div>
+        <div class="tabs">
+          ${types.map((type) => `<button class="tab ${type === state.tab ? "active" : ""}" data-tab="${type}">${type}</button>`).join("")}
+        </div>
+        <div class="record-list">
+          ${records.map((record) => `
+            <article class="record">
+              <div class="record-top">
+                <strong>${record.type}: ${record.title}</strong>
+                <time>${record.date}</time>
+              </div>
+              <p>${record.note}</p>
+            </article>
+          `).join("")}
+        </div>
+        <div class="quick-note">
+          <textarea id="noteInput" placeholder="Add a temporary handler note for ${bird.name}"></textarea>
+          <button class="primary-action" id="noteButton">Save temporary note</button>
+        </div>
+      `;
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          state.tab = tab.dataset.tab;
+          renderDetail();
+        });
+      });
+      document.getElementById("noteButton").addEventListener("click", () => {
+        const note = document.getElementById("noteInput").value.trim();
+        if (!note) {
+          showToast("Write a note first.");
+          return;
+        }
+        localStorage.setItem(`loft-note-${bird.id}`, note);
+        showToast("Temporary note saved in this browser.");
+      });
+      const savedNote = localStorage.getItem(`loft-note-${bird.id}`);
+      if (savedNote) {
+        document.getElementById("noteInput").value = savedNote;
+      }
+    }
+
+    function renderRaceCenter() {
+      const list = document.getElementById("raceList");
+      const detail = document.getElementById("raceDetail");
+      const selectedRace = races.find((race) => race.id === state.selectedRaceId) || races[0];
+      list.innerHTML = races.map((race) => `
+        <article class="race-card ${race.id === selectedRace.id ? "selected" : ""}" data-race-id="${race.id}" tabindex="0" role="button" aria-label="View ${race.name}">
+          <div>
+            <h4>${race.name}</h4>
+            <p>${race.club} / ${race.releasePoint}</p>
+          </div>
+          <div class="race-meta">
+            <span class="badge ${race.status === "Upcoming" ? "racer" : "breeder"}">${race.status}</span>
+            <span class="badge">${race.category}</span>
+            <span class="badge">${race.distanceKm} km</span>
+            <span class="badge">${formatMoney(race.entryFee)}</span>
+          </div>
+        </article>
+      `).join("");
+      list.querySelectorAll(".race-card").forEach((card) => {
+        card.addEventListener("click", () => selectRace(card.dataset.raceId));
+        card.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectRace(card.dataset.raceId);
+          }
+        });
+      });
+      const clocked = selectedRace.results.filter((result) => result.status === "Clocked");
+      const prizes = selectedRace.results.reduce((sum, result) => sum + result.prize, 0);
+      const bestVelocity = clocked.reduce((max, result) => Math.max(max, result.velocityMpm || 0), 0);
+      detail.innerHTML = `
+        <div class="detail-title">
+          <div>
+            <h3>${selectedRace.name}</h3>
+            <p>${selectedRace.club} / ${selectedRace.releasePoint}</p>
+          </div>
+          <span class="status-pill">${selectedRace.status}</span>
+        </div>
+        <p>${selectedRace.notes}</p>
+        <div class="race-result-grid">
+          <div class="field"><span>Schedule</span><strong>${selectedRace.scheduledDate}</strong></div>
+          <div class="field"><span>Basketing</span><strong>${selectedRace.basketingDate}</strong></div>
+          <div class="field"><span>Release</span><strong>${selectedRace.releaseTime}</strong></div>
+          <div class="field"><span>Weather</span><strong>${selectedRace.weather}</strong></div>
+          <div class="field"><span>Entries</span><strong>${selectedRace.results.length} birds</strong></div>
+          <div class="field"><span>Best velocity</span><strong>${bestVelocity || "-"} m/min</strong></div>
+          <div class="field"><span>Prize pool</span><strong>${formatMoney(selectedRace.prizePool)}</strong></div>
+          <div class="field"><span>Loft winnings</span><strong>${formatMoney(prizes)}</strong></div>
+        </div>
+        <div class="result-table-wrap">
+          <table class="result-table">
+            <thead>
+              <tr>
+                <th>Bird</th>
+                <th>Status</th>
+                <th>Clock</th>
+                <th>Velocity</th>
+                <th>Rank</th>
+                <th>Prize</th>
+                <th>Decision note</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${selectedRace.results.map((result) => `
+                <tr>
+                  <td><strong>${birdName(result.birdId)}</strong><br>${birdRing(result.birdId)}</td>
+                  <td>${result.status}</td>
+                  <td>${result.clockTime}</td>
+                  <td>${result.velocityMpm ? `${result.velocityMpm} m/min` : "-"}</td>
+                  <td>${result.rank}</td>
+                  <td>${formatMoney(result.prize)}</td>
+                  <td>${result.note}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function selectRace(id) {
+      state.selectedRaceId = id;
+      renderRaceCenter();
+    }
+
+    function renderTrainingBoard() {
+      document.getElementById("trainingBoard").innerHTML = birds.map((bird) => {
+        const stats = trainingStatsForBird(bird.id);
+        const readinessLabel = stats.readiness >= 80 ? "Race ready" : stats.readiness >= 60 ? "Train with care" : "Rest / monitor";
+        return `
+          <article class="training-card">
+            <div>
+              <h4>${bird.name}</h4>
+              <p style="margin:4px 0 0;color:var(--muted);font-size:12px;">${bird.ring}</p>
+            </div>
+            <div class="readiness" aria-label="Readiness ${stats.readiness}%"><span style="width:${stats.readiness}%"></span></div>
+            <div class="stat-pair"><span>Readiness</span><strong>${stats.readiness}% / ${readinessLabel}</strong></div>
+            <div class="stat-pair"><span>Return rate</span><strong>${stats.returnRate}%</strong></div>
+            <div class="stat-pair"><span>Avg gap from first</span><strong>${stats.avgGap} min</strong></div>
+            <div class="stat-pair"><span>Late returns</span><strong>${stats.late}</strong></div>
+            <div class="stat-pair"><span>Last road distance</span><strong>${stats.lastDistance} km</strong></div>
+            <div class="stat-pair"><span>Rest days</span><strong>${stats.restDays}</strong></div>
+            <div class="stat-pair"><span>Race conversion</span><strong>${stats.raceConversion}%</strong></div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderTimeline() {
+      document.getElementById("timeline").innerHTML = reminders.map((item) => `
+        <div class="timeline-item">
+          <div class="timeline-date">${item.date}</div>
+          <div>
+            <strong>${item.title}</strong>
+            <p>${item.note}</p>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderExpenses() {
+      document.getElementById("expenseRows").innerHTML = expenses.map((item) => `
+        <tr>
+          <td>${item.date}</td>
+          <td>${item.category}</td>
+          <td>${item.purpose}</td>
+          <td>${formatMoney(item.amount)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function exportSample() {
+      const payload = JSON.stringify({ birds, trainingSessions, races, expenses, reminders }, null, 2);
+      const blob = new Blob([payload], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "loftledger-ph-sample-data.json";
+      anchor.click();
+      URL.revokeObjectURL(url);
+      showToast("Sample data exported.");
+    }
+
+    document.getElementById("searchInput").addEventListener("input", (event) => {
+      state.query = event.target.value;
+      renderBirds();
+      renderDetail();
+    });
+
+    document.getElementById("statusFilter").addEventListener("change", (event) => {
+      state.status = event.target.value;
+      renderBirds();
+      renderDetail();
+    });
+
+    document.getElementById("sexFilter").addEventListener("change", (event) => {
+      state.sex = event.target.value;
+      renderBirds();
+      renderDetail();
+    });
+
+    document.getElementById("resetButton").addEventListener("click", () => {
+      state.query = "";
+      state.status = "all";
+      state.sex = "all";
+      state.selectedId = birds[0].id;
+      state.selectedRaceId = races[0].id;
+      state.tab = "All";
+      document.getElementById("searchInput").value = "";
+      document.getElementById("statusFilter").value = "all";
+      document.getElementById("sexFilter").value = "all";
+      renderBirds();
+      renderDetail();
+      renderRaceCenter();
+      renderTrainingBoard();
+      showToast("View reset.");
+    });
+
+    document.getElementById("exportButton").addEventListener("click", exportSample);
+
+    document.querySelectorAll(".nav button").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".nav button").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        document.getElementById(button.dataset.scroll).scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    renderStats();
+    renderBirds();
+    renderDetail();
+    renderRaceCenter();
+    renderTrainingBoard();
+    renderTimeline();
+    renderExpenses();
+  </script>
+</body>
+</html>
